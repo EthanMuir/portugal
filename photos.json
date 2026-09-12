@@ -1,0 +1,15 @@
+{
+  "cover": {
+    "title": "Portugal",
+    "names": "Ethan & Julie",
+    "dates": "July 2026"
+  },
+  "endText": "ate a proxima",
+  "pages": [
+    {
+      "photos": [
+        { "src": "photos/1.jpg", "caption": "Landed. Immediately lost." }
+      ]
+    }
+  ]
+}
