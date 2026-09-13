@@ -31,6 +31,19 @@ body{
   100%{transform:translateY(-120vh) translateX(var(--drift,0px)) rotate(6deg);opacity:0}
 }
 @media (prefers-reduced-motion:reduce){#hearts{display:none}}
+#burst{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:7}
+.burstheart{position:absolute;left:50%;top:46%;opacity:0;background-color:var(--heart);
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+  -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-position:center;mask-position:center;
+  animation:burstPop 1.15s ease-out forwards}
+@keyframes burstPop{
+  0%{transform:translate(-50%,-50%) scale(.4);opacity:0}
+  15%{opacity:.85}
+  100%{transform:translate(calc(-50% + var(--dx,0px)),calc(-50% + var(--dy,0px))) scale(1);opacity:0}
+}
+@media (prefers-reduced-motion:reduce){#burst{display:none}}
 #stage{position:fixed;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;
   padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 #book{--pw:366px;box-shadow:0 18px 50px rgba(0,0,0,.45);touch-action:none;user-select:none;-webkit-user-select:none}
@@ -68,6 +81,16 @@ body{
 .notetext{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;
   font-family:'Caveat',cursive;font-size:calc(var(--pw) * 0.061);line-height:1.5;text-align:center;
   white-space:pre-wrap;color:var(--ink);padding:0 14px}
+.placewrap{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:10px;text-align:center;padding:0 16px}
+.placewrap .pin{width:calc(var(--pw) * 0.15);height:calc(var(--pw) * 0.15);flex:0 0 auto;
+  background-color:var(--tile-blue);
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z'/%3E%3C/svg%3E");
+  -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-position:center;mask-position:center}
+.placename{font-weight:600;font-size:calc(var(--pw) * 0.09);color:var(--tile-blue);margin:0}
+.placenote{font-family:'Caveat',cursive;font-size:calc(var(--pw) * 0.05);color:var(--ink);opacity:.85;margin:0}
 #nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-between;
   padding:0 14px calc(14px + env(safe-area-inset-bottom));pointer-events:none;z-index:5}
 #nav button{pointer-events:auto;width:46px;height:46px;border-radius:50%;border:1.5px solid var(--tile-blue);
@@ -128,7 +151,7 @@ input:focus{outline:2px solid var(--ochre);outline-offset:1px}
 .slot .ctrls{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
 .addrow{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap}
 .count{font-size:.8rem;opacity:.6;align-self:center}
-#addpage,#addnotepage{flex:1 1 0;padding:13px;font-size:1rem;color:#fff;background:var(--tile-blue);border-color:var(--tile-blue)}
+#addpage,#addnotepage,#addplacepage{flex:1 1 0;padding:13px;font-size:1rem;color:#fff;background:var(--tile-blue);border-color:var(--tile-blue)}
 #toast{position:fixed;left:0;right:0;bottom:calc(16px + env(safe-area-inset-bottom));z-index:50;
   display:flex;justify-content:center;pointer-events:none;opacity:0;transition:opacity .25s}
 #toast.on{opacity:1}
@@ -149,12 +172,21 @@ input:focus{outline:2px solid var(--ochre);outline-offset:1px}
 #backedit{position:fixed;top:calc(10px + env(safe-area-inset-top));right:12px;z-index:6;display:none}
 body.previewing #backedit{display:block}
 #backedit .btn{border-color:var(--glaze);background:rgba(18,58,107,.75)}
+#musictoggle{position:fixed;top:calc(10px + env(safe-area-inset-top));left:12px;z-index:6;
+  width:38px;height:38px;border-radius:50%;border:1.5px solid var(--glaze);
+  background:rgba(18,58,107,.55);color:var(--glaze);font-size:1rem;line-height:1;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.7;
+  transition:opacity .2s,background .2s}
+#musictoggle.on{opacity:1;background:rgba(200,144,51,.85);border-color:var(--ochre)}
+body.editing #musictoggle{display:none}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.001s !important;transition-duration:.001s !important}}
 </style>
 </head>
 <body>
 
 <div id="hearts" aria-hidden="true"></div>
+<div id="burst" aria-hidden="true"></div>
+<button id="musictoggle" type="button" aria-label="Toggle background music" aria-pressed="false">&#9834;</button>
 <div id="stage"><div id="book"></div></div>
 <div id="hint">swipe, or use the arrows</div>
 <div id="nav">
@@ -195,7 +227,7 @@ var DEFAULT_DATA = {
   pages:[]
 };
 
-var DATA=null, flip=null, editKey="", hasBackend=false;
+var DATA=null, flip=null, editKey="", hasBackend=false, lastFlipIndex=-1;
 var isEditor = /(\?|&)edit\b/.test(location.search);
 
 function el(t,c){ var e=document.createElement(t); if(c) e.className=c; return e; }
@@ -220,6 +252,98 @@ function loadDraft(){ try{ var r=localStorage.getItem(DRAFT); return r?JSON.pars
     host.appendChild(h);
   }
 })();
+
+/* ---------- audio: a soft page-turn sound, and an optional ambient pad ---------- */
+var actx = null;
+function audioCtx(){
+  if(!actx){
+    try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; }
+  }
+  if(actx.state==="suspended"){ try{ actx.resume(); }catch(e){} }
+  return actx;
+}
+function playFlipSound(){
+  var ctx=audioCtx();
+  if(!ctx) return;
+  try{
+    var dur=0.24, sr=ctx.sampleRate;
+    var buffer=ctx.createBuffer(1, Math.round(sr*dur), sr);
+    var data=buffer.getChannelData(0);
+    for(var i=0;i<data.length;i++){
+      var t=i/data.length;
+      var env=Math.sin(Math.PI*Math.min(1,t*3))*Math.pow(1-t,1.6);
+      data[i]=(Math.random()*2-1)*env;
+    }
+    var src=ctx.createBufferSource(); src.buffer=buffer;
+    var filter=ctx.createBiquadFilter(); filter.type="bandpass";
+    filter.frequency.value=2000; filter.Q.value=0.6;
+    var gain=ctx.createGain(); gain.gain.value=0.16;
+    src.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+    src.start();
+  }catch(e){}
+}
+function pageHaptic(){
+  try{ navigator.vibrate && navigator.vibrate(8); }catch(e){}
+}
+
+var musicOn=false, musicNodes=null;
+function startMusic(){
+  var ctx=audioCtx();
+  if(!ctx||musicNodes) return;
+  var master=ctx.createGain(); master.gain.value=0;
+  master.connect(ctx.destination);
+  var freqs=[196.00,246.94,293.66,392.00]; // G3 B3 D4 G4 - a soft open chord
+  var oscs=freqs.map(function(f){
+    var o=ctx.createOscillator(); o.type="sine"; o.frequency.value=f;
+    var og=ctx.createGain(); og.gain.value=0.18;
+    var lfo=ctx.createOscillator(); lfo.type="sine"; lfo.frequency.value=0.06+Math.random()*0.05;
+    var lfoGain=ctx.createGain(); lfoGain.gain.value=3;
+    lfo.connect(lfoGain); lfoGain.connect(o.frequency);
+    var filt=ctx.createBiquadFilter(); filt.type="lowpass"; filt.frequency.value=900;
+    o.connect(og); og.connect(filt); filt.connect(master);
+    o.start(); lfo.start();
+    return { o:o, lfo:lfo };
+  });
+  master.gain.linearRampToValueAtTime(0.22, ctx.currentTime+2.2);
+  musicNodes={ master:master, oscs:oscs };
+}
+function stopMusic(){
+  if(!musicNodes) return;
+  var ctx=audioCtx();
+  var nodes=musicNodes; musicNodes=null;
+  try{
+    nodes.master.gain.linearRampToValueAtTime(0, ctx.currentTime+1.4);
+    setTimeout(function(){
+      nodes.oscs.forEach(function(p){ try{ p.o.stop(); p.lfo.stop(); }catch(e){} });
+    }, 1600);
+  }catch(e){}
+}
+var musicBtn=document.getElementById("musictoggle");
+musicBtn.onclick=function(){
+  musicOn=!musicOn;
+  musicBtn.classList.toggle("on",musicOn);
+  musicBtn.setAttribute("aria-pressed",String(musicOn));
+  if(musicOn) startMusic(); else stopMusic();
+};
+
+/* ---------- a one-time burst of hearts, for the last page ---------- */
+function burstHearts(){
+  var host=document.getElementById("burst");
+  if(!host) return;
+  var n=22;
+  for(var i=0;i<n;i++){
+    var h=el("span","burstheart");
+    var angle=Math.random()*Math.PI*2;
+    var dist=60+Math.random()*160;
+    var size=(Math.random()*10+11).toFixed(1);
+    h.style.width=size+"px"; h.style.height=size+"px";
+    h.style.setProperty("--dx",(Math.cos(angle)*dist).toFixed(0)+"px");
+    h.style.setProperty("--dy",(Math.sin(angle)*dist-50).toFixed(0)+"px");
+    h.style.animationDelay=(Math.random()*0.18).toFixed(2)+"s";
+    host.appendChild(h);
+    (function(node){ setTimeout(function(){ node.remove(); },1900); })(h);
+  }
+}
 
 var toastBox = document.getElementById("toast"), toastT;
 function toast(msg, ms){
@@ -315,6 +439,17 @@ function buildPages(){
       page.appendChild(inner); out.push(page);
       return;
     }
+    if(pg.place !== undefined){
+      var pl=pg.place||{};
+      var pwrap=el("div","placewrap");
+      pwrap.appendChild(el("span","pin"));
+      var pname=el("div","placename"); pname.textContent=pl.name||"";
+      pwrap.appendChild(pname);
+      if(pl.note){ var pnote=el("div","placenote"); pnote.textContent=pl.note; pwrap.appendChild(pnote); }
+      inner.appendChild(pwrap); inner.appendChild(el("div","strip"));
+      page.appendChild(inner); out.push(page);
+      return;
+    }
     var photos=(pg.photos||[]).slice(0,MAX_PER_PAGE);
     var grid=el("div","grid");
     grid.setAttribute("data-n", String(photos.length||1));
@@ -394,7 +529,15 @@ function renderBook(){
         prevBtn.disabled=i<=0; nextBtn.disabled=i>=t-1;
       }catch(e){}
     }
-    flip.on("flip",function(){ hint.classList.add("gone"); sync(); });
+    flip.on("flip",function(){
+      hint.classList.add("gone"); sync();
+      playFlipSound(); pageHaptic();
+      try{
+        var i=flip.getCurrentPageIndex(), t=flip.getPageCount();
+        if(i===t-1 && lastFlipIndex!==t-1) burstHearts();
+        lastFlipIndex=i;
+      }catch(e){}
+    });
     prevBtn.onclick=function(){ try{ flip.flipPrev(); }catch(e){} };
     nextBtn.onclick=function(){ try{ flip.flipNext(); }catch(e){} };
     sync();
@@ -482,6 +625,14 @@ function renderEditor(){
       return;
     }
 
+    if(pg.place !== undefined){
+      if(!pg.place) pg.place={ name:"", note:"" };
+      card.appendChild(field("Place name",pg.place.name,false,function(v){ pg.place.name=v; }));
+      card.appendChild(field("Note (optional)",pg.place.note,true,function(v){ pg.place.note=v; }));
+      wrap.appendChild(card);
+      return;
+    }
+
     if(!pg.photos) pg.photos=[];
 
     pg.photos.forEach(function(ph,si){
@@ -525,7 +676,10 @@ function renderEditor(){
   var addn=el("button","btn"); addn.type="button"; addn.id="addnotepage";
   addn.textContent="+ Add note page";
   addn.onclick=function(){ DATA.pages.push({note:""}); save(); renderEditor(); scroll.scrollTop=scroll.scrollHeight; };
-  addRow.appendChild(addp); addRow.appendChild(addn);
+  var addpl=el("button","btn"); addpl.type="button"; addpl.id="addplacepage";
+  addpl.textContent="+ Add place page";
+  addpl.onclick=function(){ DATA.pages.push({place:{name:"",note:""}}); save(); renderEditor(); scroll.scrollTop=scroll.scrollHeight; };
+  addRow.appendChild(addp); addRow.appendChild(addn); addRow.appendChild(addpl);
   wrap.appendChild(addRow);
 
   var last=el("div","card"), lh=el("h3"); lh.textContent="Last page"; last.appendChild(lh);
