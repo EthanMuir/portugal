@@ -732,10 +732,12 @@ function renderEditor(){
   addpl.textContent="+ Add place page";
   addpl.onclick=function(){ DATA.pages.push({place:{name:"",note:""}}); save(); renderEditor(); scroll.scrollTop=scroll.scrollHeight; };
   var addlp=el("button","btn"); addlp.type="button"; addlp.id="addlisbonporto";
-  addlp.textContent="+ Add Lisbon & Porto pages";
+  addlp.textContent="+ Add map pages";
   addlp.onclick=function(){
-    DATA.pages.push({place:{name:"Lisbon",note:""}});
-    DATA.pages.push({place:{name:"Porto",note:""}});
+    Object.keys(PLACE_PINS).forEach(function(key){
+      var name=key.charAt(0).toUpperCase()+key.slice(1);
+      DATA.pages.push({place:{name:name,note:""}});
+    });
     save(); renderEditor(); scroll.scrollTop=scroll.scrollHeight;
   };
   addRow.appendChild(addp); addRow.appendChild(addn); addRow.appendChild(addpl); addRow.appendChild(addlp);
