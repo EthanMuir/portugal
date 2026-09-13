@@ -85,12 +85,13 @@ body{
   white-space:pre-wrap;color:var(--ink);padding:0 14px}
 .placewrap{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;align-items:center;
   justify-content:center;gap:10px;text-align:center;padding:0 16px}
-.placewrap .pin{width:calc(var(--pw) * 0.15);height:calc(var(--pw) * 0.15);flex:0 0 auto;
-  background-color:var(--tile-blue);
-  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z'/%3E%3C/svg%3E");
-  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z'/%3E%3C/svg%3E");
-  -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
-  -webkit-mask-position:center;mask-position:center}
+.mapwrap{height:calc(var(--pw) * 0.62);max-height:230px;flex:0 0 auto}
+.ptmap{height:100%;width:auto;display:block;overflow:visible}
+.ptland{fill:var(--glaze);stroke:var(--tile-blue);stroke-width:4;stroke-linejoin:round}
+.ptpin{fill:var(--ochre)}
+.ptpin-halo{fill:var(--ochre);opacity:.35;transform-box:fill-box;transform-origin:center;
+  animation:pinPulse 2.4s ease-out infinite}
+@keyframes pinPulse{0%{transform:scale(.75);opacity:.5}70%{transform:scale(1.7);opacity:0}100%{transform:scale(1.7);opacity:0}}
 .placename{font-weight:600;font-size:calc(var(--pw) * 0.09);color:var(--tile-blue);margin:0}
 .placenote{font-family:'Caveat',cursive;font-size:calc(var(--pw) * 0.05);color:var(--ink);opacity:.85;margin:0}
 #nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-between;
@@ -153,7 +154,7 @@ input:focus{outline:2px solid var(--ochre);outline-offset:1px}
 .slot .ctrls{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
 .addrow{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap}
 .count{font-size:.8rem;opacity:.6;align-self:center}
-#addpage,#addnotepage,#addplacepage{flex:1 1 0;padding:13px;font-size:1rem;color:#fff;background:var(--tile-blue);border-color:var(--tile-blue)}
+#addpage,#addnotepage,#addplacepage,#addlisbonporto{flex:1 1 0;padding:13px;font-size:1rem;color:#fff;background:var(--tile-blue);border-color:var(--tile-blue)}
 #toast{position:fixed;left:0;right:0;bottom:calc(16px + env(safe-area-inset-bottom));z-index:50;
   display:flex;justify-content:center;pointer-events:none;opacity:0;transition:opacity .25s}
 #toast.on{opacity:1}
@@ -375,6 +376,36 @@ function api(path, opts){
 /* ---------- render the book ---------- */
 var SPANS = {1:[6],2:[6,6],3:[6,3,3],4:[3,3,3,3],5:[3,3,2,2,2]};
 
+// A simplified, stylized silhouette of mainland Portugal (not surveyed
+// geographic data -- just close enough to read at a glance) with a couple
+// of known pins. viewBox is 200 wide by 500 tall.
+var PT_OUTLINE = "M55,15 L140,30 L175,75 L150,200 L165,320 L150,410 L60,430 L25,415 "
+  + "L18,350 L35,300 L12,240 L15,150 L25,110 L20,60 Z";
+var PLACE_PINS = { lisbon:{x:48,y:305}, porto:{x:38,y:120} };
+
+function buildPortugalMap(name){
+  var NS="http://www.w3.org/2000/svg";
+  var svg=document.createElementNS(NS,"svg");
+  svg.setAttribute("viewBox","0 0 200 500");
+  svg.setAttribute("class","ptmap");
+  var land=document.createElementNS(NS,"path");
+  land.setAttribute("d",PT_OUTLINE);
+  land.setAttribute("class","ptland");
+  svg.appendChild(land);
+  var pin=PLACE_PINS[String(name||"").trim().toLowerCase()];
+  if(pin){
+    var halo=document.createElementNS(NS,"circle");
+    halo.setAttribute("cx",pin.x); halo.setAttribute("cy",pin.y); halo.setAttribute("r",11);
+    halo.setAttribute("class","ptpin-halo");
+    svg.appendChild(halo);
+    var dot=document.createElementNS(NS,"circle");
+    dot.setAttribute("cx",pin.x); dot.setAttribute("cy",pin.y); dot.setAttribute("r",6);
+    dot.setAttribute("class","ptpin");
+    svg.appendChild(dot);
+  }
+  return svg;
+}
+
 function buildPages(){
   var out=[];
   var cover=el("div","page cover"), cart=el("div","cartouche");
@@ -404,7 +435,8 @@ function buildPages(){
     if(pg.place !== undefined){
       var pl=pg.place||{};
       var pwrap=el("div","placewrap");
-      pwrap.appendChild(el("span","pin"));
+      var mapWrap=el("div","mapwrap"); mapWrap.appendChild(buildPortugalMap(pl.name));
+      pwrap.appendChild(mapWrap);
       var pname=el("div","placename"); pname.textContent=pl.name||"";
       pwrap.appendChild(pname);
       if(pl.note){ var pnote=el("div","placenote"); pnote.textContent=pl.note; pwrap.appendChild(pnote); }
@@ -643,7 +675,14 @@ function renderEditor(){
   var addpl=el("button","btn"); addpl.type="button"; addpl.id="addplacepage";
   addpl.textContent="+ Add place page";
   addpl.onclick=function(){ DATA.pages.push({place:{name:"",note:""}}); save(); renderEditor(); scroll.scrollTop=scroll.scrollHeight; };
-  addRow.appendChild(addp); addRow.appendChild(addn); addRow.appendChild(addpl);
+  var addlp=el("button","btn"); addlp.type="button"; addlp.id="addlisbonporto";
+  addlp.textContent="+ Add Lisbon & Porto pages";
+  addlp.onclick=function(){
+    DATA.pages.push({place:{name:"Lisbon",note:""}});
+    DATA.pages.push({place:{name:"Porto",note:""}});
+    save(); renderEditor(); scroll.scrollTop=scroll.scrollHeight;
+  };
+  addRow.appendChild(addp); addRow.appendChild(addn); addRow.appendChild(addpl); addRow.appendChild(addlp);
   wrap.appendChild(addRow);
 
   var last=el("div","card"), lh=el("h3"); lh.textContent="Last page"; last.appendChild(lh);
