@@ -30,8 +30,12 @@ body{
   88%{opacity:var(--peak,.4)}
   100%{transform:translateY(-120vh) translateX(var(--drift,0px)) rotate(6deg);opacity:0}
 }
-.flag{position:absolute;bottom:-10%;opacity:0;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25));
+.flag{position:absolute;bottom:-10%;opacity:0;border-radius:2px;background-size:cover;background-position:center;
+  box-shadow:0 1px 3px rgba(0,0,0,.35);
   animation-name:heartFloat;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
+.flag.ca{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'%3E%3Crect width='3' height='2' fill='%23fff'/%3E%3Crect width='.75' height='2' fill='%23FF0000'/%3E%3Crect x='2.25' width='.75' height='2' fill='%23FF0000'/%3E%3Cpath d='M1.5 .42 L1.6 .72 L1.86 .6 L1.74 .84 L2.02 .9 L1.76 1 L1.9 1.24 L1.62 1.16 L1.5 1.46 L1.38 1.16 L1.1 1.24 L1.24 1 L.98 .9 L1.26 .84 L1.14 .6 L1.4 .72 Z' fill='%23FF0000'/%3E%3C/svg%3E")}
+.flag.pt{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'%3E%3Crect width='1.2' height='2' fill='%23046A38'/%3E%3Crect x='1.2' width='1.8' height='2' fill='%23DA291C'/%3E%3Ccircle cx='1.2' cy='1' r='.42' fill='%23FFD700' stroke='%23fff' stroke-width='.05'/%3E%3C/svg%3E")}
+.flag.fr{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'%3E%3Crect width='1' height='2' fill='%230055A4'/%3E%3Crect x='1' width='1' height='2' fill='%23fff'/%3E%3Crect x='2' width='1' height='2' fill='%23EF4135'/%3E%3C/svg%3E")}
 @media (prefers-reduced-motion:reduce){#hearts{display:none}}
 #burst{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:7}
 .burstheart{position:absolute;left:50%;top:46%;opacity:0;background-color:var(--heart);
@@ -253,15 +257,14 @@ function loadDraft(){ try{ var r=localStorage.getItem(DRAFT); return r?JSON.pars
     h.style.setProperty("--peak",(Math.random()*0.25+0.25).toFixed(2));
     host.appendChild(h);
   }
-  var flags=["🇨🇦","🇵🇹","🇫🇷"];
+  var flags=["ca","pt","fr"];
   flags.forEach(function(flag){
     for(var j=0;j<2;j++){
-      var f=el("span","flag");
-      f.textContent=flag;
-      var size=(Math.random()*10+16).toFixed(1);
+      var f=el("span","flag "+flag);
+      var w=(Math.random()*10+22).toFixed(1);
       var dur=(Math.random()*14+16).toFixed(1);
       f.style.left=(Math.random()*100).toFixed(1)+"%";
-      f.style.fontSize=size+"px";
+      f.style.width=w+"px"; f.style.height=(w*2/3).toFixed(1)+"px";
       f.style.animationDuration=dur+"s";
       f.style.animationDelay=(-(Math.random()*dur)).toFixed(1)+"s";
       f.style.setProperty("--drift",(Math.random()*40-20).toFixed(0)+"px");
