@@ -147,8 +147,12 @@ input:focus{outline:2px solid var(--ochre);outline-offset:1px}
 .noteinput:focus{outline:2px solid var(--ochre);outline-offset:1px}
 .slot{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid rgba(27,77,143,.14)}
 .slot:first-of-type{border-top:0}
-.slot img{width:58px;height:58px;object-fit:cover;border-radius:2px;border:2px solid #fff;
-  box-shadow:0 1px 5px rgba(0,0,0,.2);background:#dfe6ef;flex:0 0 auto}
+.thumbwrap{position:relative;flex:0 0 auto;width:84px;height:84px;border-radius:2px;overflow:hidden;
+  border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.2);background:#dfe6ef;touch-action:none}
+.thumbwrap img{width:100%;height:100%;object-fit:cover;display:block;cursor:crosshair;-webkit-user-drag:none}
+.focusdot{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-8px 0 0 -8px;
+  border-radius:50%;border:2px solid #fff;background:var(--ochre);
+  box-shadow:0 0 0 1px rgba(0,0,0,.35);pointer-events:none}
 .slot .body{flex:1;min-width:0}
 .slot .fn{font-size:.74rem;opacity:.6;margin:5px 0 0;word-break:break-all;color:var(--ink)}
 .slot .ctrls{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
@@ -324,6 +328,11 @@ function placeholder(n){
   return "data:image/svg+xml," + encodeURIComponent(svg);
 }
 
+function focusPos(obj){
+  var fx=(obj.focusX!=null?obj.focusX:50), fy=(obj.focusY!=null?obj.focusY:50);
+  return fx+"% "+fy+"%";
+}
+
 /* ---------- convert + shrink in the browser ---------- */
 function decode(file){
   if(window.createImageBitmap){
@@ -414,6 +423,7 @@ function buildPages(){
     var cimg=el("img","cover-photo"); cimg.alt="";
     cimg.addEventListener("error",function ch(){ cimg.removeEventListener("error",ch); cimg.src=placeholder("?"); });
     cimg.src=DATA.cover.photo;
+    cimg.style.objectPosition=focusPos(DATA.cover);
     cart.appendChild(cimg);
   }
   var h1=el("h1"); h1.textContent=DATA.cover.title||"";
@@ -455,6 +465,7 @@ function buildPages(){
       var img=el("img"); img.alt=p.caption||""; img.loading="lazy";
       img.addEventListener("error",function h(){ img.removeEventListener("error",h); img.src=placeholder(num); });
       img.src=p.src;
+      img.style.objectPosition=focusPos(p);
       fig.appendChild(img);
       if(p.caption){ var cp=el("figcaption","caption"); cp.textContent=p.caption; fig.appendChild(cp); }
       grid.appendChild(fig);
@@ -567,6 +578,35 @@ function field(label,value,hand,onInput){
   l.appendChild(s); l.appendChild(inp); return l;
 }
 
+// A thumbnail you can tap or drag on to recenter its crop (object-position).
+// `obj` holds the focusX/focusY fields directly (a photo, or DATA.cover).
+function focusThumb(src, obj){
+  var wrap=el("div","thumbwrap");
+  var img=el("img"); img.alt="";
+  img.addEventListener("error",function hh(){ img.removeEventListener("error",hh); img.src=placeholder("?"); });
+  img.src=src;
+  var dot=el("span","focusdot");
+  function apply(){
+    img.style.objectPosition=focusPos(obj);
+    dot.style.left=(obj.focusX!=null?obj.focusX:50)+"%";
+    dot.style.top=(obj.focusY!=null?obj.focusY:50)+"%";
+  }
+  apply();
+  function setFromEvent(e){
+    var r=img.getBoundingClientRect();
+    var x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
+    var y=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));
+    obj.focusX=Math.round(x*100); obj.focusY=Math.round(y*100);
+    apply(); save();
+  }
+  img.addEventListener("pointerdown",function(e){ try{ img.setPointerCapture(e.pointerId); }catch(err){} setFromEvent(e); });
+  img.addEventListener("pointermove",function(e){ if(!e.buttons) return; setFromEvent(e); });
+  img.addEventListener("pointerup",function(e){ try{ img.releasePointerCapture(e.pointerId); }catch(err){} });
+  wrap.appendChild(img); wrap.appendChild(dot);
+  wrap.resetFocus=function(){ obj.focusX=50; obj.focusY=50; apply(); save(); };
+  return wrap;
+}
+
 function renderEditor(){
   scroll.innerHTML="";
   var wrap=el("div","escroll-inner");
@@ -576,14 +616,14 @@ function renderEditor(){
   var coverRow;
   if(DATA.cover.photo){
     coverRow=el("div","slot");
-    var cimg=el("img"); cimg.alt="";
-    cimg.addEventListener("error",function chh(){ cimg.removeEventListener("error",chh); cimg.src=placeholder("?"); });
-    cimg.src=DATA.cover.photo;
+    var cthumb=focusThumb(DATA.cover.photo, DATA.cover);
     var cbody=el("div","body"), cctrls=el("div","ctrls");
+    var ccenter=el("button","mini"); ccenter.type="button"; ccenter.textContent="Center";
+    ccenter.onclick=function(){ cthumb.resetFocus(); };
     var crm=el("button","mini danger"); crm.type="button"; crm.textContent="Remove";
     crm.onclick=function(){ DATA.cover.photo=null; save(); renderEditor(); };
-    cctrls.appendChild(crm); cbody.appendChild(cctrls);
-    coverRow.appendChild(cimg); coverRow.appendChild(cbody);
+    cctrls.appendChild(ccenter); cctrls.appendChild(crm); cbody.appendChild(cctrls);
+    coverRow.appendChild(cthumb); coverRow.appendChild(cbody);
   } else {
     coverRow=el("div","addrow");
     var cadd=el("button","mini"); cadd.type="button"; cadd.textContent="+ Add cover photo";
@@ -631,11 +671,15 @@ function renderEditor(){
 
     if(!pg.photos) pg.photos=[];
 
+    if(pg.photos.length){
+      var recenterHint=el("p","fn"); recenterHint.style.margin="0 0 9px";
+      recenterHint.textContent="Tap or drag a photo below to recenter its crop.";
+      card.appendChild(recenterHint);
+    }
+
     pg.photos.forEach(function(ph,si){
       var slot=el("div","slot");
-      var img=el("img"); img.alt="";
-      img.addEventListener("error",function hh(){ img.removeEventListener("error",hh); img.src=placeholder("?"); });
-      img.src=ph.src;
+      var thumb=focusThumb(ph.src, ph);
       var body=el("div","body");
       var cap=el("input"); cap.type="text"; cap.className="hand"; cap.placeholder="Caption";
       cap.value=ph.caption||"";
@@ -647,11 +691,13 @@ function renderEditor(){
       pu.disabled=si===0; pu.onclick=function(){ movePhoto(pi,si,-1); };
       var pd=el("button","mini"); pd.type="button"; pd.textContent="\u2193";
       pd.disabled=si===pg.photos.length-1; pd.onclick=function(){ movePhoto(pi,si,1); };
+      var center=el("button","mini"); center.type="button"; center.textContent="Center";
+      center.onclick=function(){ thumb.resetFocus(); };
       var pr=el("button","mini danger"); pr.type="button"; pr.textContent="Remove";
       pr.onclick=function(){ pg.photos.splice(si,1); save(); renderEditor(); };
-      ctrls.appendChild(pu); ctrls.appendChild(pd); ctrls.appendChild(pr);
+      ctrls.appendChild(pu); ctrls.appendChild(pd); ctrls.appendChild(center); ctrls.appendChild(pr);
       body.appendChild(ctrls);
-      slot.appendChild(img); slot.appendChild(body);
+      slot.appendChild(thumb); slot.appendChild(body);
       card.appendChild(slot);
     });
 
