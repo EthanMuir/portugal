@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
 <style>
-:root{--tile-blue:#1B4D8F;--tile-deep:#123A6B;--glaze:#F0EDE2;--paper:#FBF8F0;--ink:#24405E;--ochre:#C89033}
+:root{--tile-blue:#1B4D8F;--tile-deep:#123A6B;--glaze:#F0EDE2;--paper:#FBF8F0;--ink:#24405E;--ochre:#C89033;--heart:#E7A9AE}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0;padding:0;overflow:hidden;overscroll-behavior:none}
 body{
@@ -17,7 +17,21 @@ body{
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Crect width='44' height='44' fill='%23123A6B'/%3E%3Cg fill='none' stroke='%232f6bb0' stroke-width='1'%3E%3Cpath d='M22 5 L39 22 L22 39 L5 22 Z'/%3E%3Cpath d='M22 12.5 L31.5 22 L22 31.5 L12.5 22 Z'/%3E%3C/g%3E%3Ccircle cx='22' cy='22' r='3' fill='%232f6bb0'/%3E%3Cpath d='M0 0 L9 0 A9 9 0 0 1 0 9 Z' fill='%232f6bb0'/%3E%3Cpath d='M44 0 L44 9 A9 9 0 0 1 35 0 Z' fill='%232f6bb0'/%3E%3Cpath d='M0 44 L0 35 A9 9 0 0 1 9 44 Z' fill='%232f6bb0'/%3E%3Cpath d='M44 44 L35 44 A9 9 0 0 1 44 35 Z' fill='%232f6bb0'/%3E%3C/svg%3E");
   background-size:44px 44px;font-family:'Cormorant Garamond',serif;
 }
-#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+#hearts{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:1}
+.heart{position:absolute;bottom:-10%;opacity:0;background-color:var(--heart);
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+  -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-position:center;mask-position:center;
+  animation-name:heartFloat;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
+@keyframes heartFloat{
+  0%{transform:translateY(0) translateX(0) rotate(-6deg);opacity:0}
+  12%{opacity:var(--peak,.4)}
+  88%{opacity:var(--peak,.4)}
+  100%{transform:translateY(-120vh) translateX(var(--drift,0px)) rotate(6deg);opacity:0}
+}
+@media (prefers-reduced-motion:reduce){#hearts{display:none}}
+#stage{position:fixed;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;
   padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 #book{--pw:366px;box-shadow:0 18px 50px rgba(0,0,0,.45);touch-action:none;user-select:none;-webkit-user-select:none}
 #book img{pointer-events:none;-webkit-user-drag:none}
@@ -140,6 +154,7 @@ body.previewing #backedit{display:block}
 </head>
 <body>
 
+<div id="hearts" aria-hidden="true"></div>
 <div id="stage"><div id="book"></div></div>
 <div id="hint">swipe, or use the arrows</div>
 <div id="nav">
@@ -186,6 +201,25 @@ var isEditor = /(\?|&)edit\b/.test(location.search);
 function el(t,c){ var e=document.createElement(t); if(c) e.className=c; return e; }
 function save(){ try{ localStorage.setItem(DRAFT, JSON.stringify(DATA)); }catch(e){} }
 function loadDraft(){ try{ var r=localStorage.getItem(DRAFT); return r?JSON.parse(r):null; }catch(e){ return null; } }
+
+/* ---------- a few hearts, drifting up in the background ---------- */
+(function spawnHearts(){
+  var host=document.getElementById("hearts");
+  if(!host) return;
+  var n=11;
+  for(var i=0;i<n;i++){
+    var h=el("span","heart");
+    var size=(Math.random()*12+10).toFixed(1);
+    var dur=(Math.random()*14+16).toFixed(1);
+    h.style.left=(Math.random()*100).toFixed(1)+"%";
+    h.style.width=size+"px"; h.style.height=size+"px";
+    h.style.animationDuration=dur+"s";
+    h.style.animationDelay=(-(Math.random()*dur)).toFixed(1)+"s";
+    h.style.setProperty("--drift",(Math.random()*40-20).toFixed(0)+"px");
+    h.style.setProperty("--peak",(Math.random()*0.25+0.25).toFixed(2));
+    host.appendChild(h);
+  }
+})();
 
 var toastBox = document.getElementById("toast"), toastT;
 function toast(msg, ms){
