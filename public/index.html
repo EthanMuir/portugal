@@ -174,13 +174,6 @@ input:focus{outline:2px solid var(--ochre);outline-offset:1px}
 #backedit{position:fixed;top:calc(10px + env(safe-area-inset-top));right:12px;z-index:6;display:none}
 body.previewing #backedit{display:block}
 #backedit .btn{border-color:var(--glaze);background:rgba(18,58,107,.75)}
-#musictoggle{position:fixed;top:calc(10px + env(safe-area-inset-top));left:12px;z-index:6;
-  width:38px;height:38px;border-radius:50%;border:1.5px solid var(--glaze);
-  background:rgba(18,58,107,.55);color:var(--glaze);font-size:1rem;line-height:1;
-  display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.7;
-  transition:opacity .2s,background .2s}
-#musictoggle.on{opacity:1;background:rgba(200,144,51,.85);border-color:var(--ochre)}
-body.editing #musictoggle{display:none}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.001s !important;transition-duration:.001s !important}}
 </style>
 </head>
@@ -188,7 +181,6 @@ body.editing #musictoggle{display:none}
 
 <div id="hearts" aria-hidden="true"></div>
 <div id="burst" aria-hidden="true"></div>
-<button id="musictoggle" type="button" aria-label="Toggle background music" aria-pressed="false">&#9834;</button>
 <div id="stage"><div id="book"></div></div>
 <div id="hint">swipe, or use the arrows</div>
 <div id="nav">
@@ -255,18 +247,25 @@ function loadDraft(){ try{ var r=localStorage.getItem(DRAFT); return r?JSON.pars
   }
 })();
 
-/* ---------- audio: a soft page-turn sound, and an optional ambient pad ---------- */
+/* ---------- audio: a soft page-turn sound ---------- */
 var actx = null;
 function audioCtx(){
   if(!actx){
     try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; }
   }
-  if(actx.state==="suspended"){ try{ actx.resume(); }catch(e){} }
   return actx;
 }
+// iOS/Safari only allow starting audio synchronously inside a real user
+// gesture. The page-flip "flip" event fires after the animation ends, which
+// is too late, so unlock/resume the context on the very first tap instead.
+document.addEventListener("pointerdown", function unlockAudio(){
+  document.removeEventListener("pointerdown", unlockAudio);
+  var ctx=audioCtx();
+  if(ctx && ctx.state==="suspended"){ try{ ctx.resume(); }catch(e){} }
+}, { once:true });
 function playFlipSound(){
   var ctx=audioCtx();
-  if(!ctx) return;
+  if(!ctx || ctx.state!=="running") return;
   try{
     var dur=0.24, sr=ctx.sampleRate;
     var buffer=ctx.createBuffer(1, Math.round(sr*dur), sr);
@@ -287,46 +286,6 @@ function playFlipSound(){
 function pageHaptic(){
   try{ navigator.vibrate && navigator.vibrate(8); }catch(e){}
 }
-
-var musicOn=false, musicNodes=null;
-function startMusic(){
-  var ctx=audioCtx();
-  if(!ctx||musicNodes) return;
-  var master=ctx.createGain(); master.gain.value=0;
-  master.connect(ctx.destination);
-  var freqs=[196.00,246.94,293.66,392.00]; // G3 B3 D4 G4 - a soft open chord
-  var oscs=freqs.map(function(f){
-    var o=ctx.createOscillator(); o.type="sine"; o.frequency.value=f;
-    var og=ctx.createGain(); og.gain.value=0.18;
-    var lfo=ctx.createOscillator(); lfo.type="sine"; lfo.frequency.value=0.06+Math.random()*0.05;
-    var lfoGain=ctx.createGain(); lfoGain.gain.value=3;
-    lfo.connect(lfoGain); lfoGain.connect(o.frequency);
-    var filt=ctx.createBiquadFilter(); filt.type="lowpass"; filt.frequency.value=900;
-    o.connect(og); og.connect(filt); filt.connect(master);
-    o.start(); lfo.start();
-    return { o:o, lfo:lfo };
-  });
-  master.gain.linearRampToValueAtTime(0.22, ctx.currentTime+2.2);
-  musicNodes={ master:master, oscs:oscs };
-}
-function stopMusic(){
-  if(!musicNodes) return;
-  var ctx=audioCtx();
-  var nodes=musicNodes; musicNodes=null;
-  try{
-    nodes.master.gain.linearRampToValueAtTime(0, ctx.currentTime+1.4);
-    setTimeout(function(){
-      nodes.oscs.forEach(function(p){ try{ p.o.stop(); p.lfo.stop(); }catch(e){} });
-    }, 1600);
-  }catch(e){}
-}
-var musicBtn=document.getElementById("musictoggle");
-musicBtn.onclick=function(){
-  musicOn=!musicOn;
-  musicBtn.classList.toggle("on",musicOn);
-  musicBtn.setAttribute("aria-pressed",String(musicOn));
-  if(musicOn) startMusic(); else stopMusic();
-};
 
 /* ---------- a one-time burst of hearts, for the last page ---------- */
 function burstHearts(){
