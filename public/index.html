@@ -226,7 +226,7 @@ var DEFAULT_DATA = {
   pages:[]
 };
 
-var DATA=null, flip=null, editKey="", hasBackend=false, lastFlipIndex=-1;
+var DATA=null, flip=null, editKey="", hasBackend=false, lastFlipIndex=-1, currentIdx=0;
 var isEditor = /(\?|&)edit\b/.test(location.search);
 
 function el(t,c){ var e=document.createElement(t); if(c) e.className=c; return e; }
@@ -508,7 +508,7 @@ function fallbackMode(){
   prevBtn.onclick=function(){ host.scrollBy({left:-host.clientWidth*.9,behavior:"smooth"}); };
   nextBtn.onclick=function(){ host.scrollBy({left: host.clientWidth*.9,behavior:"smooth"}); };
 }
-function renderBook(){
+function renderBook(target){
   teardown();
   buildPages().forEach(function(p){ host.appendChild(p); });
   var d=sizes();
@@ -531,6 +531,7 @@ function renderBook(){
     function sync(){
       try{
         var i=flip.getCurrentPageIndex(), t=flip.getPageCount();
+        currentIdx=i;
         prevBtn.disabled=i<=0; nextBtn.disabled=i>=t-1;
       }catch(e){}
     }
@@ -545,6 +546,7 @@ function renderBook(){
     });
     prevBtn.onclick=function(){ try{ flip.flipPrev(); }catch(e){} };
     nextBtn.onclick=function(){ try{ flip.flipNext(); }catch(e){} };
+    if(target!=null){ try{ flip.turnToPage(target); }catch(e){} }
     sync();
   }catch(err){ console.error(err); fallbackMode(); }
   setTimeout(function(){ hint.classList.add("gone"); },6000);
@@ -561,7 +563,7 @@ window.addEventListener("resize",function(){
   clearTimeout(rt);
   rt=setTimeout(function(){
     if(document.body.classList.contains("editing")) return;
-    renderBook();
+    renderBook(currentIdx);
   },300);
 });
 
@@ -611,7 +613,12 @@ function renderEditor(){
   scroll.innerHTML="";
   var wrap=el("div","escroll-inner");
 
-  var c=el("div","card"), ch=el("h3"); ch.textContent="Front page"; c.appendChild(ch);
+  var c=el("div","card"), ch=el("h3");
+  var cht=el("span"); cht.textContent="Front page"; ch.appendChild(cht); ch.appendChild(el("span","sp"));
+  var cpv=el("button","mini"); cpv.type="button"; cpv.textContent="Preview";
+  cpv.onclick=function(){ previewFrom(0); };
+  ch.appendChild(cpv);
+  c.appendChild(ch);
 
   var coverRow;
   if(DATA.cover.photo){
@@ -641,6 +648,9 @@ function renderEditor(){
     var card=el("div","card"), h=el("h3");
     var t=el("span"); t.textContent="Page "+(pi+1);
     h.appendChild(t); h.appendChild(el("span","sp"));
+    var pv=el("button","mini"); pv.type="button"; pv.textContent="Preview";
+    pv.onclick=function(){ previewFrom(pi+1); };
+    h.appendChild(pv);
     var up=el("button","mini"); up.type="button"; up.textContent="\u2191";
     up.disabled=pi===0; up.onclick=function(){ movePage(pi,-1); };
     var dn=el("button","mini"); dn.type="button"; dn.textContent="\u2193";
@@ -731,7 +741,12 @@ function renderEditor(){
   addRow.appendChild(addp); addRow.appendChild(addn); addRow.appendChild(addpl); addRow.appendChild(addlp);
   wrap.appendChild(addRow);
 
-  var last=el("div","card"), lh=el("h3"); lh.textContent="Last page"; last.appendChild(lh);
+  var last=el("div","card"), lh=el("h3");
+  var lht=el("span"); lht.textContent="Last page"; lh.appendChild(lht); lh.appendChild(el("span","sp"));
+  var lpv=el("button","mini"); lpv.type="button"; lpv.textContent="Preview";
+  lpv.onclick=function(){ previewFrom(DATA.pages.length+1); };
+  lh.appendChild(lpv);
+  last.appendChild(lh);
   last.appendChild(field("Closing words",DATA.endText,true,function(v){DATA.endText=v;}));
   wrap.appendChild(last);
 
@@ -811,12 +826,13 @@ pubBtn.onclick=function(){
     .then(function(){ pubBtn.disabled=false; pubBtn.textContent=was; });
 };
 
-document.getElementById("preview").onclick=function(){
+function previewFrom(idx){
   document.body.classList.remove("editing");
   document.body.classList.add("previewing");
   hint.classList.remove("gone");
-  renderBook();
-};
+  renderBook(idx);
+}
+document.getElementById("preview").onclick=function(){ previewFrom(0); };
 document.getElementById("toedit").onclick=function(){
   document.body.classList.remove("previewing");
   document.body.classList.add("editing");
