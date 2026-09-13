@@ -253,42 +253,6 @@ function loadDraft(){ try{ var r=localStorage.getItem(DRAFT); return r?JSON.pars
   }
 })();
 
-/* ---------- audio: a soft page-turn sound ---------- */
-var actx = null;
-function audioCtx(){
-  if(!actx){
-    try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; }
-  }
-  return actx;
-}
-// iOS/Safari only allow starting audio synchronously inside a real user
-// gesture. The page-flip "flip" event fires after the animation ends, which
-// is too late, so unlock/resume the context on the very first tap instead.
-document.addEventListener("pointerdown", function unlockAudio(){
-  document.removeEventListener("pointerdown", unlockAudio);
-  var ctx=audioCtx();
-  if(ctx && ctx.state==="suspended"){ try{ ctx.resume(); }catch(e){} }
-}, { once:true });
-function playFlipSound(){
-  var ctx=audioCtx();
-  if(!ctx || ctx.state!=="running") return;
-  try{
-    var dur=0.24, sr=ctx.sampleRate;
-    var buffer=ctx.createBuffer(1, Math.round(sr*dur), sr);
-    var data=buffer.getChannelData(0);
-    for(var i=0;i<data.length;i++){
-      var t=i/data.length;
-      var env=Math.sin(Math.PI*Math.min(1,t*3))*Math.pow(1-t,1.6);
-      data[i]=(Math.random()*2-1)*env;
-    }
-    var src=ctx.createBufferSource(); src.buffer=buffer;
-    var filter=ctx.createBiquadFilter(); filter.type="bandpass";
-    filter.frequency.value=2000; filter.Q.value=0.6;
-    var gain=ctx.createGain(); gain.gain.value=0.16;
-    src.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
-    src.start();
-  }catch(e){}
-}
 function pageHaptic(){
   try{ navigator.vibrate && navigator.vibrate(8); }catch(e){}
 }
@@ -539,7 +503,7 @@ function renderBook(target){
     }
     flip.on("flip",function(){
       hint.classList.add("gone"); sync();
-      playFlipSound(); pageHaptic();
+      pageHaptic();
       try{
         var i=flip.getCurrentPageIndex(), t=flip.getPageCount();
         if(i===t-1 && lastFlipIndex!==t-1) burstHearts();
