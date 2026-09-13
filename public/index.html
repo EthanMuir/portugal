@@ -64,8 +64,8 @@ body{
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23FBF8F0'/%3E%3Cg fill='none' stroke='%231B4D8F' stroke-width='.9'%3E%3Cpath d='M8 1.5 L14.5 8 L8 14.5 L1.5 8 Z'/%3E%3C/g%3E%3Ccircle cx='8' cy='8' r='1.4' fill='%231B4D8F'/%3E%3C/svg%3E");
   background-size:16px 16px}
 .cover{background-color:var(--tile-blue);background-size:40px 40px;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' fill='%23F0EDE2'/%3E%3Cg fill='none' stroke='%231B4D8F' stroke-width='1.15'%3E%3Cpath d='M20 3 L37 20 L20 37 L3 20 Z'/%3E%3Cpath d='M20 10.5 L29.5 20 L20 29.5 L10.5 20 Z'/%3E%3C/g%3E%3Ccircle cx='20' cy='20' r='2.8' fill='%231B4D8F'/%3E%3Cpath d='M0 0 L8 0 A8 8 0 0 1 0 8 Z' fill='%231B4D8F'/%3E%3Cpath d='M40 0 L40 8 A8 8 0 0 1 32 0 Z' fill='%231B4D8F'/%3E%3Cpath d='M0 40 L0 32 A8 8 0 0 1 8 40 Z' fill='%231B4D8F'/%3E%3Cpath d='M40 40 L32 40 A8 8 0 0 1 40 32 Z' fill='%231B4D8F'/%3E%3C/svg%3E");
-  display:flex;align-items:center;justify-content:center;padding:24px}
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' fill='%23F0EDE2'/%3E%3Cg fill='none' stroke='%231B4D8F' stroke-width='1.15'%3E%3Cpath d='M20 3 L37 20 L20 37 L3 20 Z'/%3E%3Cpath d='M20 10.5 L29.5 20 L20 29.5 L10.5 20 Z'/%3E%3C/g%3E%3Ccircle cx='20' cy='20' r='2.8' fill='%231B4D8F'/%3E%3Cpath d='M0 0 L8 0 A8 8 0 0 1 0 8 Z' fill='%231B4D8F'/%3E%3Cpath d='M40 0 L40 8 A8 8 0 0 1 32 0 Z' fill='%231B4D8F'/%3E%3Cpath d='M0 40 L0 32 A8 8 0 0 1 8 40 Z' fill='%231B4D8F'/%3E%3Cpath d='M40 40 L32 40 A8 8 0 0 1 40 32 Z' fill='%231B4D8F'/%3E%3C/svg%3E")}
+.cover-inner{height:100%;width:100%;display:flex;align-items:center;justify-content:center;padding:24px}
 .cartouche{background:var(--paper);border:2px solid var(--tile-blue);outline:1px solid var(--tile-blue);
   outline-offset:5px;padding:34px 24px 28px;text-align:center;width:100%;max-width:var(--pw);
   box-shadow:0 6px 24px rgba(18,58,107,.3)}
@@ -76,8 +76,9 @@ body{
 .rule{width:54px;height:1px;background:var(--ochre);margin:15px auto}
 .cartouche .names{font-family:'Caveat',cursive;font-size:calc(var(--pw) * 0.068);color:var(--ink);margin:0}
 .cartouche .dates{font-style:italic;font-size:1rem;color:var(--ink);opacity:.72;margin:9px 0 0}
-.endpage{display:flex;align-items:center;justify-content:center;background:var(--paper)}
-.endpage span{font-family:'Caveat',cursive;font-size:calc(var(--pw) * 0.087);color:var(--tile-blue)}
+.endpage{background:var(--paper)}
+.endpage-inner{height:100%;width:100%;display:flex;align-items:center;justify-content:center;padding:0 24px}
+.endpage span{font-family:'Caveat',cursive;font-size:calc(var(--pw) * 0.087);color:var(--tile-blue);text-align:center}
 .pagetitle{font-weight:600;font-size:calc(var(--pw) * 0.072);color:var(--tile-blue);
   text-align:center;line-height:1.08;margin:0}
 .notetext{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;
@@ -430,7 +431,8 @@ function buildPages(){
   var nm=el("p","names"); nm.textContent=DATA.cover.names||"";
   var dt=el("p","dates"); dt.textContent=DATA.cover.dates||"";
   cart.appendChild(h1); cart.appendChild(el("div","rule")); cart.appendChild(nm); cart.appendChild(dt);
-  cover.appendChild(cart); out.push(cover);
+  var coverInner=el("div","cover-inner"); coverInner.appendChild(cart);
+  cover.appendChild(coverInner); out.push(cover);
 
   var n=0;
   DATA.pages.forEach(function(pg){
@@ -474,8 +476,8 @@ function buildPages(){
     page.appendChild(inner); out.push(page);
   });
 
-  var end=el("div","page endpage"), sp=el("span");
-  sp.textContent=DATA.endText||""; end.appendChild(sp); out.push(end);
+  var end=el("div","page endpage"), endInner=el("div","endpage-inner"), sp=el("span");
+  sp.textContent=DATA.endText||""; endInner.appendChild(sp); end.appendChild(endInner); out.push(end);
   return out;
 }
 
