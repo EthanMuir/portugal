@@ -78,6 +78,8 @@ body{
 .cartouche .dates{font-style:italic;font-size:1rem;color:var(--ink);opacity:.72;margin:9px 0 0}
 .endpage{display:flex;align-items:center;justify-content:center;background:var(--paper)}
 .endpage span{font-family:'Caveat',cursive;font-size:calc(var(--pw) * 0.087);color:var(--tile-blue)}
+.pagetitle{font-weight:600;font-size:calc(var(--pw) * 0.072);color:var(--tile-blue);
+  text-align:center;line-height:1.08;margin:0}
 .notetext{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;
   font-family:'Caveat',cursive;font-size:calc(var(--pw) * 0.061);line-height:1.5;text-align:center;
   white-space:pre-wrap;color:var(--ink);padding:0 14px}
@@ -433,6 +435,7 @@ function buildPages(){
   var n=0;
   DATA.pages.forEach(function(pg){
     var page=el("div","page"), inner=el("div","page-inner");
+    if(pg.title){ var pt=el("div","pagetitle"); pt.textContent=pg.title; inner.appendChild(pt); }
     if(pg.note !== undefined){
       var ntext=el("div","notetext"); ntext.textContent=pg.note||"";
       inner.appendChild(ntext); inner.appendChild(el("div","strip"));
@@ -615,6 +618,8 @@ function renderEditor(){
     del.onclick=function(){ if(confirm("Delete page "+(pi+1)+"?")){ DATA.pages.splice(pi,1); save(); renderEditor(); } };
     h.appendChild(up); h.appendChild(dn); h.appendChild(del);
     card.appendChild(h);
+
+    card.appendChild(field("Page title (optional)",pg.title,false,function(v){ pg.title=v; }));
 
     if(pg.note !== undefined){
       var ta=el("textarea","noteinput"); ta.rows=6; ta.placeholder="Note text";
