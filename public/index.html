@@ -30,6 +30,8 @@ body{
   88%{opacity:var(--peak,.4)}
   100%{transform:translateY(-120vh) translateX(var(--drift,0px)) rotate(6deg);opacity:0}
 }
+.flag{position:absolute;bottom:-10%;opacity:0;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25));
+  animation-name:heartFloat;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
 @media (prefers-reduced-motion:reduce){#hearts{display:none}}
 #burst{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:7}
 .burstheart{position:absolute;left:50%;top:46%;opacity:0;background-color:var(--heart);
@@ -234,7 +236,7 @@ function el(t,c){ var e=document.createElement(t); if(c) e.className=c; return e
 function save(){ try{ localStorage.setItem(DRAFT, JSON.stringify(DATA)); }catch(e){} }
 function loadDraft(){ try{ var r=localStorage.getItem(DRAFT); return r?JSON.parse(r):null; }catch(e){ return null; } }
 
-/* ---------- a few hearts, drifting up in the background ---------- */
+/* ---------- a few hearts (and flags), drifting up in the background ---------- */
 (function spawnHearts(){
   var host=document.getElementById("hearts");
   if(!host) return;
@@ -251,6 +253,22 @@ function loadDraft(){ try{ var r=localStorage.getItem(DRAFT); return r?JSON.pars
     h.style.setProperty("--peak",(Math.random()*0.25+0.25).toFixed(2));
     host.appendChild(h);
   }
+  var flags=["🇨🇦","🇵🇹","🇫🇷"];
+  flags.forEach(function(flag){
+    for(var j=0;j<2;j++){
+      var f=el("span","flag");
+      f.textContent=flag;
+      var size=(Math.random()*10+16).toFixed(1);
+      var dur=(Math.random()*14+16).toFixed(1);
+      f.style.left=(Math.random()*100).toFixed(1)+"%";
+      f.style.fontSize=size+"px";
+      f.style.animationDuration=dur+"s";
+      f.style.animationDelay=(-(Math.random()*dur)).toFixed(1)+"s";
+      f.style.setProperty("--drift",(Math.random()*40-20).toFixed(0)+"px");
+      f.style.setProperty("--peak",(Math.random()*0.25+0.3).toFixed(2));
+      host.appendChild(f);
+    }
+  });
 })();
 
 function pageHaptic(){
